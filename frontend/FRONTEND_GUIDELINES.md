@@ -39,6 +39,7 @@ src/
 - Dados via TanStack Query
 - Sem `any`
 - Tabelas com paginação, busca, ordenação, loading, vazio e confirm delete
+- Exclusão de Vehicle/Customer: se a API retornar 409 (oportunidade vinculada), exibir snackbar de erro e **não** remover da lista
 - Ordenação por título da coluna: asc → desc → desabilitar (`cycleSortState` em `utils/sort.ts`)
 - Ordenação padrão: `lastModifiedAt` desc
 - Detalhes sempre com botão Voltar para a listagem

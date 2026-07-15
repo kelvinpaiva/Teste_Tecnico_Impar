@@ -24,8 +24,8 @@
 | V04 | Criar com Tipo | 201 + item na listagem + snackbar de sucesso |
 | V05 | Editar | Dados e Tipo atualizados; LastModifiedAt muda |
 | V06 | Detalhes | Campos + Tipo + Data Criação/Atualização + botão Voltar |
-| V07 | Excluir sem FK | 204 + removido da lista |
-| V08 | Excluir com oportunidade | 409 + mensagem clara + snackbar de erro |
+| V07 | Excluir sem oportunidade | Hard delete: 204 + removido da lista |
+| V08 | Excluir com oportunidade | **Não exclui**: 409 + mensagem clara + snackbar de erro; veículo permanece |
 | V09 | Validação | Campos obrigatórios (incl. Tipo) bloqueiam submit |
 | V10 | Ordenar grade | Clique no título: asc → desc → desabilitar |
 
@@ -37,7 +37,8 @@
 | C02 | Criar | Cadastro ok |
 | C03 | Criar e-mail duplicado | 409 |
 | C04 | Detalhes | Mostra oportunidades + botão Voltar |
-| C05 | Excluir com oportunidade | 409 |
+| C05 | Excluir com oportunidade | **Não exclui**: 409 + mensagem clara; cliente permanece |
+| C05b | Excluir sem oportunidade | Hard delete: 204 + removido da lista |
 | C06 | Ordenar grade | Clique no título: asc → desc → desabilitar |
 | C07 | Oportunidade Rápida branca | Clique → "Sem Oportunidade Rápida no momento" |
 | C08 | Oportunidade Rápida verde | Interesse com veículo Disponível compatível; abre nova oportunidade pré-preenchida |
@@ -52,7 +53,7 @@
 | O01 | Listar com filtros status/cliente/veículo | Filtros funcionam; ordem padrão LastModifiedAt |
 | O02 | Criar com selects | Associação cliente+veículo persistida |
 | O03 | Criar com IDs inválidos | 404 |
-| O04 | Marcar como Vendido | Status da opportunity muda; veículo **não** muda automaticamente |
+| O04 | Marcar como Vendido | Status da opportunity muda e o veículo associado passa para **Vendido** automaticamente |
 | O05 | Excluir | Hard delete com 204 |
 | O06 | Ordenar grade | Clique no título: asc → desc → desabilitar |
 | O07 | Detalhes Voltar | Botão retorna à listagem |

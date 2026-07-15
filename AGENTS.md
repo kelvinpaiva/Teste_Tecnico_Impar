@@ -13,7 +13,7 @@ Antes de gerar código, leia:
 
 - Não inventar CQRS/MediatR/Event Sourcing
 - Usar `IApplicationDbContext` (sem Repository Pattern)
-- Hard delete + `409` quando houver FK
+- Hard delete (sem soft delete). **Não permitir** Delete de Vehicle/Customer se houver Opportunity → `409 Conflict`
 - `CancellationToken` e `AsNoTracking()` nas leituras
-- Não sincronizar automaticamente status do veículo ao vender oportunidade
+- Ao marcar oportunidade como `Vendido`, sincronizar automaticamente o status do veículo para `Vendido`
 - Preferir reutilizar componentes/serviços existentes

@@ -72,8 +72,8 @@ make up
 ## Módulos
 
 - Dashboard com totais e gráficos
-- Veículos (CRUD + filtros)
-- Clientes (CRUD + filtros)
-- Oportunidades (CRUD + filtros)
+- Veículos (CRUD + filtros) — exclusão bloqueada se houver oportunidade (`409`)
+- Clientes (CRUD + filtros + Oportunidade Rápida) — exclusão bloqueada se houver oportunidade (`409`)
+- Oportunidades (CRUD + filtros) — hard delete permitido; ao marcar `Vendido`, sincroniza o veículo
 
 Na primeira inicialização o banco já nasce com dados pré-cadastrados (veículos, clientes e oportunidades).

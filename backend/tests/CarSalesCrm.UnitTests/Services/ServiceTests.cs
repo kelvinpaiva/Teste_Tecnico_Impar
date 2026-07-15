@@ -156,6 +156,62 @@ public class CustomerServiceTests
 
         Assert.Equal(ResultStatus.Conflict, result.Status);
     }
+
+    [Fact]
+    public async Task Delete_Should_Return_Conflict_When_Has_Opportunities()
+    {
+        await using var context = CreateContext();
+        var vehicleId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+
+        context.Vehicles.Add(new Vehicle
+        {
+            Id = vehicleId,
+            Brand = "VW",
+            Model = "Gol",
+            Year = 2020,
+            Price = 40000,
+            Color = "Prata",
+            Mileage = 1000,
+            Type = VehicleType.Hatch,
+            Status = VehicleStatus.Disponivel,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        context.Customers.Add(new Customer
+        {
+            Id = customerId,
+            Name = "Ana",
+            Email = "ana@test.com",
+            Phone = "11999999999",
+            PrimaryInterest = CustomerInterest.Hatch,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        context.Opportunities.Add(new Opportunity
+        {
+            Id = Guid.NewGuid(),
+            CustomerId = customerId,
+            VehicleId = vehicleId,
+            Status = OpportunityStatus.NovoLead,
+            ProposedValue = 39000,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        await context.SaveChangesAsync();
+
+        var service = new CustomerService(
+            context,
+            CreateMapper(),
+            new CreateCustomerRequestValidator(),
+            new UpdateCustomerRequestValidator(),
+            NullLogger<CustomerService>.Instance);
+
+        var result = await service.DeleteAsync(customerId, CancellationToken.None);
+
+        Assert.Equal(ResultStatus.Conflict, result.Status);
+        Assert.Equal(1, await context.Customers.CountAsync());
+    }
 }
 
 public class OpportunityServiceTests
@@ -208,5 +264,71 @@ public class OpportunityServiceTests
             CancellationToken.None);
 
         Assert.Equal(ResultStatus.NotFound, result.Status);
+    }
+
+    [Fact]
+    public async Task Update_Should_Sync_Vehicle_Status_When_Marked_Sold()
+    {
+        await using var context = CreateContext();
+        var vehicleId = Guid.NewGuid();
+        var customerId = Guid.NewGuid();
+        var opportunityId = Guid.NewGuid();
+
+        context.Vehicles.Add(new Vehicle
+        {
+            Id = vehicleId,
+            Brand = "Toyota",
+            Model = "Corolla",
+            Year = 2022,
+            Price = 139900,
+            Color = "Prata",
+            Mileage = 10000,
+            Type = VehicleType.Sedan,
+            Status = VehicleStatus.Disponivel,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        context.Customers.Add(new Customer
+        {
+            Id = customerId,
+            Name = "Bruno",
+            Email = "bruno@test.com",
+            Phone = "11988887777",
+            PrimaryInterest = CustomerInterest.Sedan,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        context.Opportunities.Add(new Opportunity
+        {
+            Id = opportunityId,
+            CustomerId = customerId,
+            VehicleId = vehicleId,
+            Status = OpportunityStatus.EmNegociacao,
+            ProposedValue = 130000,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        });
+        await context.SaveChangesAsync();
+
+        var service = new OpportunityService(
+            context,
+            CreateMapper(),
+            new CreateOpportunityRequestValidator(),
+            new UpdateOpportunityRequestValidator(),
+            NullLogger<OpportunityService>.Instance);
+
+        var result = await service.UpdateAsync(
+            opportunityId,
+            new UpdateOpportunityRequest(
+                customerId,
+                vehicleId,
+                OpportunityStatus.Vendido,
+                130000,
+                "Fechado"),
+            CancellationToken.None);
+
+        Assert.Equal(ResultStatus.Success, result.Status);
+        var vehicle = await context.Vehicles.SingleAsync(v => v.Id == vehicleId);
+        Assert.Equal(VehicleStatus.Vendido, vehicle.Status);
     }
 }

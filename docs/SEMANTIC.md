@@ -50,8 +50,8 @@ Não foram usados CQRS, MediatR ou Event Sourcing — deliberadamente, para mant
 
 1. **E-mail único do cliente** — Create/Update retornam `409 Conflict` se duplicado.
 2. **Integridade referencial** — Opportunity exige Customer e Vehicle existentes.
-3. **Delete com proteção de FK** — não é possível excluir Vehicle/Customer com oportunidades (`409`). Opportunity pode ser excluída. Hard delete (sem soft delete). FKs: `Restrict`.
-4. **Sem sincronização automática de status do veículo** — marcar Opportunity como `Vendido` **não** altera o status do Vehicle. O vendedor atualiza o estoque manualmente. Evita mutação silenciosa do inventário.
+3. **Hard delete com proteção de dependência** — exclusões são físicas (sem soft delete). **Vehicle e Customer não podem ser excluídos** se existir Opportunity vinculada: a API retorna `409 Conflict` com mensagem clara e o registro permanece. Só é permitido hard delete de Vehicle/Customer **sem** oportunidades. Opportunity pode ser excluída normalmente (`204`). No EF/banco as FKs usam `Restrict`.
+4. **Sincronização automática de status do veículo** — ao criar/atualizar Opportunity com status `Vendido`, o Vehicle associado passa automaticamente para `VehicleStatus.Vendido` (e `UpdatedAt` é atualizado) na mesma transação.
 5. **Ordenação padrão das listagens** — por **LastModifiedAt** descendente (última criação/alteração).
 6. **Oportunidade Rápida (cliente)** — botão na listagem:
    - Verde se existir veículo `Disponivel` compatível com o Interesse Principal
@@ -94,7 +94,7 @@ Listagens retornam `PagedResponse<T>`:
 - DTOs (entidades não são expostas)
 - Connection string e senha SA via environment variables
 - CORS configurado
-- Hard delete com checagem de dependências
+- Hard delete com checagem de dependências (Vehicle/Customer com Opportunity → bloqueio `409`)
 
 ## Seed
 
@@ -104,5 +104,4 @@ Na inicialização: ~20 veículos, ~15 clientes, ~25 oportunidades. Idempotente.
 
 - Autenticação JWT
 - Upload de imagens de veículos
-- Sincronização opcional Opportunity→Vehicle status
 - CI/CD

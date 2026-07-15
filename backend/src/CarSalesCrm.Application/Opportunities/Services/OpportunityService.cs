@@ -4,6 +4,7 @@ using CarSalesCrm.Application.Common.Models;
 using CarSalesCrm.Application.Common.Results;
 using CarSalesCrm.Application.Opportunities.Dtos;
 using CarSalesCrm.Domain.Entities;
+using CarSalesCrm.Domain.Enums;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -124,6 +125,7 @@ public class OpportunityService : IOpportunityService
         opportunity.UpdatedAt = now;
 
         _context.Opportunities.Add(opportunity);
+        await SyncVehicleStatusWhenSoldAsync(opportunity.VehicleId, opportunity.Status, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         var created = await _context.Opportunities
@@ -162,6 +164,7 @@ public class OpportunityService : IOpportunityService
         _mapper.Map(request, opportunity);
         opportunity.UpdatedAt = DateTime.UtcNow;
 
+        await SyncVehicleStatusWhenSoldAsync(opportunity.VehicleId, opportunity.Status, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
 
         var updated = await _context.Opportunities
@@ -209,6 +212,31 @@ public class OpportunityService : IOpportunityService
             return Result.NotFound("Veículo informado não foi encontrado.");
 
         return Result.Success();
+    }
+
+    /// <summary>
+    /// Quando a oportunidade é marcada como Vendido, o veículo associado passa para Status Vendido.
+    /// </summary>
+    private async Task SyncVehicleStatusWhenSoldAsync(
+        Guid vehicleId,
+        OpportunityStatus opportunityStatus,
+        CancellationToken cancellationToken)
+    {
+        if (opportunityStatus != OpportunityStatus.Vendido)
+            return;
+
+        var vehicle = await _context.Vehicles.FirstOrDefaultAsync(v => v.Id == vehicleId, cancellationToken);
+        if (vehicle is null)
+            return;
+
+        if (vehicle.Status == VehicleStatus.Vendido)
+            return;
+
+        vehicle.Status = VehicleStatus.Vendido;
+        vehicle.UpdatedAt = DateTime.UtcNow;
+        _logger.LogInformation(
+            "Veículo {VehicleId} marcado como Vendido por sincronização com oportunidade.",
+            vehicleId);
     }
 
     private static IQueryable<Opportunity> ApplySorting(

@@ -16,7 +16,7 @@
 |---|---|---|---|---|
 | Planejamento | Montar CRM .NET 10 + React + SQL Server + Docker | Plano detalhado criado | Dúvidas de versão/.NET/DB | Ajustes: .NET 10, SQL Server, IApplicationDbContext, ILogger |
 | Backend | Clean Architecture sem Repository | Solution, Services, Controllers | Solution .slnx no local errado | Reorganização em `backend/` |
-| Testes | xUnit services/validators | 9 testes passando | — | — |
+| Testes | xUnit services/validators | 14 testes passando (delete 409 Vehicle/Customer, e-mail, sync Vendido) | — | — |
 | Frontend scaffold | Vite React TS + MUI | App criada | Vite 8 incompatível com Node 20.17; MUI 9 API de Stack/TextField/icons | Downgrade Vite 5; props via `sx`/`slotProps`; ícones Outlined |
 | Docker | Compose one-command | Dockerfile API/Front + SQL Server | Healthcheck SQL Server e memória | Retry na API + mem_limit 2g |
 | Evolução UX/domínio | LastModifiedAt, Tipo veículo, sort 3 estados, Voltar, Oportunidade Rápida | Migration AddVehicleType + UI + matcher | Seed sem Utilitário Disponível | Ranger alterado para Disponivel; testes do matcher |
@@ -25,7 +25,7 @@
 
 - Guidelines semânticos reduzem inconsistência entre módulos gerados por IA
 - Pin de versões (Vite/Node) evita falhas de build no ambiente do avaliador
-- Regras de negócio documentadas (409 FK, e-mail único, não-sync de status) devem estar no SEMANTIC.md para a IA não “inventar” comportamentos
+- Regras de negócio documentadas (hard delete; Vehicle/Customer com Opportunity → 409 sem excluir; e-mail único; sync Opportunity→Vehicle ao vender) devem estar no SEMANTIC.md para a IA não “inventar” comportamentos
 
 ## Status
 
