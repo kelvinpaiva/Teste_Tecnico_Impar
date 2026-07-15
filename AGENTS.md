@@ -4,10 +4,11 @@ Contexto para agentes de IA (Cursor, Claude Code, etc.).
 
 Antes de gerar código, leia:
 
-1. [docs/SEMANTIC.md](docs/SEMANTIC.md) — domínio, arquitetura e regras
-2. [backend/BACKEND_GUIDELINES.md](backend/BACKEND_GUIDELINES.md)
-3. [frontend/FRONTEND_GUIDELINES.md](frontend/FRONTEND_GUIDELINES.md)
-4. [docs/QA.md](docs/QA.md) — critérios de aceite
+1. [docs/PLAN.md](docs/PLAN.md) — plano e decisões do projeto
+2. [docs/SEMANTIC.md](docs/SEMANTIC.md) — domínio, arquitetura e regras
+3. [backend/BACKEND_GUIDELINES.md](backend/BACKEND_GUIDELINES.md)
+4. [frontend/FRONTEND_GUIDELINES.md](frontend/FRONTEND_GUIDELINES.md)
+5. [docs/QA.md](docs/QA.md) — critérios de aceite
 
 ## Regras globais
 
