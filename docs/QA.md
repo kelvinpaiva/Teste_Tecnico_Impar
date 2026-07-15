@@ -57,6 +57,8 @@
 | O06 | Ordenar grade | Clique no título: asc → desc → desabilitar |
 | O07 | Detalhes Voltar | Botão retorna à listagem |
 | O08 | Data Criação/Atualização | Visível na listagem e detalhes |
+| O09 | Combo veículos | Não lista veículos Vendidos |
+| O10 | Via Oportunidade Rápida | Alerta explicativo + círculo verde nos veículos compatíveis |
 
 ## Persistência / Docker
 

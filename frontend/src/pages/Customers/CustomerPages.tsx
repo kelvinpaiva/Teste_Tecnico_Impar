@@ -102,7 +102,7 @@ export function CustomerListPage() {
 
                 showSuccess('Veículo compatível encontrado. Abrindo cadastro de oportunidade.');
                 navigate(
-                  `/opportunities/new?customerId=${row.id}&vehicleId=${row.quickOpportunityVehicleId}`,
+                  `/opportunities/new?customerId=${row.id}&vehicleId=${row.quickOpportunityVehicleId}&fromQuick=1`,
                 );
               }}
               sx={{

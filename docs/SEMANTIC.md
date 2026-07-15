@@ -73,6 +73,7 @@ Não foram usados CQRS, MediatR ou Event Sourcing — deliberadamente, para mant
 
 - Clique nos títulos da grade: **asc → desc → desabilitar** (volta à ordenação padrão LastModifiedAt)
 - Detalhes de Veículo, Cliente e Oportunidade possuem botão **Voltar** para a listagem
+- Cadastro de oportunidades: combo de veículos **não lista Vendidos**; ao abrir pela Oportunidade Rápida, veículos compatíveis exibem círculo verde e há alerta explicativo na tela
 
 Listagens retornam `PagedResponse<T>`:
 

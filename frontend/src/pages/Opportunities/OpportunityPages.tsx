@@ -4,6 +4,8 @@ import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import {
+  Alert,
+  Box,
   Button,
   Grid,
   IconButton,
@@ -13,7 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -30,8 +32,9 @@ import {
   useOpportunityMutations,
   useVehicles,
 } from '../../hooks/useCrmQueries';
-import type { Opportunity, OpportunityFormData, OpportunityStatus } from '../../types';
+import type { Opportunity, OpportunityFormData, OpportunityStatus, Vehicle } from '../../types';
 import { formatCurrency, formatDate, getErrorMessage, opportunityStatusLabels } from '../../utils/format';
+import { matchesQuickOpportunity } from '../../utils/quickOpportunity';
 import { cycleSortState, getLastModifiedAt } from '../../utils/sort';
 
 const opportunitySchema = z.object({
@@ -246,10 +249,12 @@ function OpportunityForm({
   defaultValues,
   onSubmit,
   submitting,
+  fromQuickOpportunity = false,
 }: {
   defaultValues: OpportunityFormData;
   onSubmit: (values: OpportunityFormData) => void;
   submitting: boolean;
+  fromQuickOpportunity?: boolean;
 }) {
   const navigate = useNavigate();
   const customersQuery = useCustomers({ page: 1, pageSize: 100 });
@@ -264,6 +269,57 @@ function OpportunityForm({
     defaultValues,
   });
 
+  const selectedCustomerId = useWatch({ control, name: 'customerId' });
+  const selectedVehicleId = useWatch({ control, name: 'vehicleId' });
+
+  const selectedCustomer = useMemo(
+    () => (customersQuery.data?.items ?? []).find((customer) => customer.id === selectedCustomerId),
+    [customersQuery.data?.items, selectedCustomerId],
+  );
+
+  const vehicleOptions = useMemo(() => {
+    const vehicles = vehiclesQuery.data?.items ?? [];
+    return vehicles.filter(
+      (vehicle) => vehicle.status !== 'Vendido' || vehicle.id === selectedVehicleId,
+    );
+  }, [vehiclesQuery.data?.items, selectedVehicleId]);
+
+  const recommendedVehicles = useMemo(() => {
+    if (!selectedCustomer || !fromQuickOpportunity) {
+      return new Set<string>();
+    }
+
+    return new Set(
+      vehicleOptions
+        .filter((vehicle) => matchesQuickOpportunity(selectedCustomer.primaryInterest, vehicle))
+        .map((vehicle) => vehicle.id),
+    );
+  }, [fromQuickOpportunity, selectedCustomer, vehicleOptions]);
+
+  const renderVehicleLabel = (vehicle: Vehicle) => {
+    const isRecommended = recommendedVehicles.has(vehicle.id);
+    return (
+      <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+        {isRecommended ? (
+          <Box
+            component="span"
+            aria-hidden
+            sx={{
+              width: 10,
+              height: 10,
+              borderRadius: '50%',
+              bgcolor: 'success.main',
+              flexShrink: 0,
+            }}
+          />
+        ) : null}
+        <Typography component="span" variant="body2">
+          {vehicle.brand} {vehicle.model} ({vehicle.year})
+        </Typography>
+      </Stack>
+    );
+  };
+
   return (
     <FormContainer
       onSubmit={handleSubmit(onSubmit)}
@@ -277,6 +333,14 @@ function OpportunityForm({
       }
     >
       <Grid container spacing={2}>
+        {fromQuickOpportunity ? (
+          <Grid size={{ xs: 12 }}>
+            <Alert severity="success" variant="outlined">
+              O círculo verde antes do nome do veículo indica carros que atendem à Recomendação
+              Rápida para o cliente selecionado.
+            </Alert>
+          </Grid>
+        ) : null}
         <Grid size={{ xs: 12, md: 6 }}>
           <Controller
             name="customerId"
@@ -311,10 +375,19 @@ function OpportunityForm({
                 {...field}
                 error={Boolean(errors.vehicleId)}
                 helperText={errors.vehicleId?.message}
+                slotProps={{
+                  select: {
+                    renderValue: (value) => {
+                      const vehicle = vehicleOptions.find((item) => item.id === value);
+                      if (!vehicle) return '';
+                      return renderVehicleLabel(vehicle);
+                    },
+                  },
+                }}
               >
-                {(vehiclesQuery.data?.items ?? []).map((vehicle) => (
+                {vehicleOptions.map((vehicle) => (
                   <MenuItem key={vehicle.id} value={vehicle.id}>
-                    {vehicle.brand} {vehicle.model} ({vehicle.year})
+                    {renderVehicleLabel(vehicle)}
                   </MenuItem>
                 ))}
               </TextField>
@@ -366,11 +439,13 @@ export function OpportunityCreatePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { create } = useOpportunityMutations();
+  const fromQuickOpportunity = searchParams.get('fromQuick') === '1';
 
   return (
     <>
       <PageHeader title="Nova oportunidade" subtitle="Associe cliente e veículo" />
       <OpportunityForm
+        fromQuickOpportunity={fromQuickOpportunity}
         defaultValues={{
           customerId: searchParams.get('customerId') ?? '',
           vehicleId: searchParams.get('vehicleId') ?? '',
